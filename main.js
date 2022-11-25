@@ -51,4 +51,3 @@ if (cuotas===3){
 }
 
 alert(`Su precio Final es ${precioFinal} en ${cuotas}`);
-
