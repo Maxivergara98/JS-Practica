@@ -1,102 +1,146 @@
 
-//En esta entrega lo que prepare es un array con los distintos productos del kiosco.
-//En la funcion Basicamente lo que hace es preguntarle al cliente que producto quiere, cuantas unidades y devolver un array de los productos con las cantidades requeridas.
-//Obviamente falta que devuelta tambien el precio total de cada producto + un precio total (y restarle al stock) pero es mucho mas complejo por ahora
-const productos = [
-    {
-        producto: "oreos", precio: 10, stock: 10, id: 1, cantidad:0
+const productos = {
+    producto1: {
+      nombre: 'Papas fritas',
+      precio: '3.50',
+      descripcion: 'Papas frescas preparadas en el momento, caseras, seleccionadas exclusivamente para tener una buena calidad y con un sabor inigualable.',
+      srcImg: 'https://i.blogs.es/f9cf25/degustacion-patatas/450_1000.jpg'
     },
-    {
-        producto: "melbas", precio: 15, stock: 10, id: 2, cantidad:0
+    producto2: {
+      nombre: 'Hamburguesa',
+      precio: '10.00',
+      descripcion: 'La mejor Hamburguesa del mercado, con productos finamente seleccionados, una presentación única y el mejor sabor.',
+      srcImg: 'https://cocina-casera.com/wp-content/uploads/2016/11/hamburguesa-queso-receta.jpg'
     },
-
-    {
-        producto: "pepitos", precio: 20, stock: 10, id: 3, cantidad:0
+    producto3: {
+      nombre: 'Pizza',
+      precio: '15.50',
+      descripcion: 'Masa preparada en el local, fermentada el tiempo suficiente para que de una mordida puedas sentir una sensación única de sabor y textura.',
+      srcImg: 'https://elgourmet.s3.amazonaws.com/recetas/share/pizza_Mh3H4eanyBKEsStv1YclPWTf9OUqIi.png'
+    },
+    producto4: {
+      nombre: 'Completo',
+      precio: '8.50',
+      descripcion: 'Estos son los mejores completos de la ciudad, hechos con el mejor pan y ingredientes finamente seleccionados.',
+      srcImg: 'https://i2.wp.com/golososdelmundo.com/wp-content/uploads/2018/08/completo-italiano3.jpg?fit=1024%2C683'
+    },
+    producto5: {
+      nombre: 'Taco',
+      precio: '15.00',
+      descripcion: 'El mejor taco del mercado, como si lo preparara uno de los mejores taqueros de México.',
+      srcImg: 'https://imasacr.com/wp-content/uploads/2018/05/aussie-style-beef-and-salad-tacos-86525-1.jpeg'
     }
-]
+  }
 
-const carrito = [];
-
-function agregarCarrito() {
-    let entrada = "si"
-    while (entrada === "si") {
-        let pregunta = parseInt(prompt("Eliga: 1- Oreos, 2- melbas, 3-Pepitos"))
-        let pregunta2 = parseInt(prompt("cuantas unidades quiere"))
-        let items = productos.find(elemento => elemento.id === pregunta);
-        let itemEnCarrito = carrito.find (elemento=>elemento.id===pregunta);
-        if (itemEnCarrito){
-            itemEnCarrito.cantidad+= pregunta2
-        } else {
-            items.cantidad= pregunta2;
-            carrito.push(items)
+  const templateProd = document.getElementById('template-prod').content
+  const contenedorProd = document.querySelector('.contenedor-productos')
+  const fragment = document.createDocumentFragment()
+  
+  
+ 
+  Object.values(productos).forEach( producto => {
+    templateProd.querySelector('.div-info .nombre-prod').textContent = producto.nombre
+    templateProd.querySelector('.div-precio-boton .precio').textContent = producto.precio
+    templateProd.querySelector('.div-info .descripcion-prod').textContent = producto.descripcion
+    templateProd.querySelector('.contenedor-img img').setAttribute('alt', producto.nombre)
+    templateProd.querySelector('.contenedor-img img').setAttribute('src', producto.srcImg)
+    const clone = templateProd.cloneNode(true)
+    fragment.appendChild(clone)
+  })
+  contenedorProd.appendChild(fragment)
+  
+  
+  let carrito = {}
+  const templateTabla = document.getElementById('agregar-producto-al-carro').content
+  const tbodyCarrito = document.getElementById('carrito-body')
+  const fragmentTabla = document.createDocumentFragment()
+  const templateFoot = document.getElementById('tfooter').content
+  const tfootCarrito = document.getElementById('footer')
+  
+  contenedorProd.addEventListener('click', e => {
+    
+    if(e.target.textContent === "Agregar") {
+      setCarrito(e.target.parentElement.parentElement)
+    }
+    e.stopPropagation();
+  })
+  const setCarrito = e => {
+    const pivoteCarrito = {
+      nombre: e.querySelector('.div-info .nombre-prod').textContent,
+      precio: e.querySelector('.div-precio-boton .precio').textContent,
+      cantidad: 1
+    }
+    if(carrito.hasOwnProperty(pivoteCarrito.nombre)){
+      carrito[pivoteCarrito.nombre].cantidad += 1
+    } else {
+      carrito[pivoteCarrito.nombre] = {...pivoteCarrito}
+    }
+    pintarTabla(carrito)
+  }
+  
+  const pintarTabla = objetoCarrito => {
+    Object.values(objetoCarrito).forEach( objeto => {
+      const cloneTabla = templateTabla.cloneNode(true)
+      cloneTabla.getElementById('producto').textContent = objeto.nombre
+      cloneTabla.getElementById('cant').textContent = objeto.cantidad
+      cloneTabla.getElementById('precio-uni').textContent = objeto.precio
+      let precioTotal = parseFloat(objeto.precio) * objeto.cantidad
+      cloneTabla.getElementById('precio-total-prod').textContent = precioTotal.toFixed(2)
+      fragmentTabla.appendChild(cloneTabla)
+    })
+    tbodyCarrito.innerHTML = ''
+    tbodyCarrito.appendChild(fragmentTabla)
+    pintarFooter()
+  }
+  const pintarFooter = () => {
+    tfootCarrito.innerHTML = ''
+    if(Object.keys(carrito).length === 0) {
+      tfootCarrito.innerHTML = '<tr><td colspan = 4>¡No hay ningun elemento en el carrito!</td></tr>'
+    } else {
+      const total = Object.values(carrito).reduce((acc, {cantidad, precio}) => acc + (cantidad * precio),0)
+      templateFoot.getElementById('total-a-pagar').textContent = total.toFixed(2)
+      const cloneFoot = templateFoot.cloneNode(true)
+      fragment.appendChild(cloneFoot)
+      tfootCarrito.appendChild(fragment)
+      //Boton Vaciar carrito
+      const botonVaciar = document.getElementById('vaciar-tabla')
+  botonVaciar.addEventListener('click', () => {
+        carrito = {}
+        pintarTabla(carrito)
+        pintarFooter()
+      })
+      
+   
+      
+    }
+  }
+  tbodyCarrito.addEventListener('click', e => {
+    
+    if(e.target.classList.contains('button')) {
+      aumentarDisminuir(e.target)
+    }
+  })
+  const aumentarDisminuir = boton => {
+    if(boton.textContent === '+'){
+      const indicador = boton.parentElement.parentElement.firstElementChild.textContent
+      Object.values(carrito).forEach( elemento => {
+        if(elemento.nombre === indicador) {
+        carrito[elemento.nombre].cantidad++  
         }
-        
-
-        entrada = prompt("desea continuar Si o no")
-
-
+      })
     }
-
-
-
-    return carrito
-
-
-}
-
-console.log(agregarCarrito());
-
-
-//Esto esta comentado porque es parte de la PreEntrega1
-/* 
-let precio = 0;
-let precioTotal = 0;
-
-let entrada = "si";
-while (entrada === "si") {
-    let producto = prompt("que galletita quiere: oreos, melbas o pepitos");
-    let cantidad = parseInt(prompt("cuantas unidades quiere"));
-    switch (producto) {
-        case "oreos":
-            precio = 10 * cantidad;
-            break;
-        case "melbas":
-            precio = 15 * cantidad;
-            break;
-        case "pepitos":
-            precio = 20 * cantidad;
-            break;
-        default:
-            alert("no hay otras opciones");
-            break;
-
+    if(boton.textContent === '-') {
+      const indicador = boton.parentElement.parentElement.firstElementChild.textContent
+      Object.values(carrito).forEach( elemento => {
+        if(elemento.nombre === indicador) {
+        carrito[elemento.nombre].cantidad--
+          if(carrito[elemento.nombre].cantidad === 0) {
+            delete carrito[elemento.nombre]
+          }
+        }
+      })
     }
-
-
-    precioTotal = precioTotal + precio;
-
-    entrada = prompt("Desea continuar comprando: Si o No");
-
-}
-
-alert(`Tu precio final es ${precioTotal}`);
-
-
-//condicional con IF
-
-let cuotas = parseInt(prompt("Cuantas cuotas quiere, 3/6/12"));
-let precioFinal = 0;
-
-
-if (cuotas === 3) {
-    precioFinal = precioTotal / 3;
-} else if (cuotas === 6) {
-    precioFinal = precioTotal / 6;
-} else if (cuotas === 12) {
-    precioFinal = precioTotal / 12;
-} else {
-    alert("no aplica ");
-}
-
-alert(`Su precio Final es ${precioFinal} en ${cuotas}`);
- */
+    pintarTabla(carrito)
+    pintarFooter()
+  }
+  
